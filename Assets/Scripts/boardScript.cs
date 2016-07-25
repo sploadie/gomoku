@@ -33,7 +33,50 @@ public class boardScript : MonoBehaviour {
 	
 	}
 
-	public bool canPlace ( char type, spaceScript.Position position) {
+	public bool canPlace ( char type, spaceScript.Position pos) {
+		bool freeThree = false;
+		char offense = type;
+		char defense = ( offense == 'w' ? 'b' : 'w' );
+		int i, j, k, l, count, empty;
+		char tempChip;
+		for (i = -1; i < 1; ++i) {
+			for (j = -1; j < 2; ++j) {
+				if (!(i == 0 && j ==0) && !(i == 0 && j == -1)) {
+					try {
+						for (k = -4; k < 1; k++) {
+							try {
+								count = 0;
+								empty = 0;
+								for (l = 0; l < 5; l++) {
+									if (k + l == 0) {
+										count++;
+									} else {
+										tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
+										if (tempChip == offense) {
+											count++;
+										} else if (tempChip == defense) {
+											count = 0;
+											break;
+										} else {
+											empty++;
+										}
+									}
+								}
+								if (count > 1)
+									Debug.Log ("Count:" + count + " Empty:" + empty);
+								if (count == 3 && empty >= 2) {
+									Debug.Log ("Free three found!");
+									if (freeThree)
+										return false;
+									freeThree = true;
+									break;
+								}
+							} catch(System.IndexOutOfRangeException) {}
+						}
+					} catch(System.IndexOutOfRangeException) {}
+				}
+			}
+		}
 		return true;
 	}
 

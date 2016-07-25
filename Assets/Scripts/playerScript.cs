@@ -119,6 +119,7 @@ public class playerScript : MonoBehaviour {
 						nextTurn();
 						if (!currentPlayer().ai) {
 							changing_player = true;
+							change_velocity = 0f;
 							reset_time = 0f;
 						} else {
 							// Handle AI FIXME
