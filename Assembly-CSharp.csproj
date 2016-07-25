@@ -45,7 +45,9 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\Player.cs" />
      <Compile Include="Assets\Scripts\boardScript.cs" />
+     <Compile Include="Assets\Scripts\counterChip.cs" />
      <Compile Include="Assets\Scripts\playerScript.cs" />
      <Compile Include="Assets\Scripts\spaceScript.cs" />
      <Compile Include="Assets\Scripts\spinningChip.cs" />

@@ -5,7 +5,6 @@ public class spinningChip : MonoBehaviour {
 
 	public Color color;
 	public MeshRenderer mesh;
-	Vector3 rotate = new Vector3 (30f, 30f, 30f);
 
 	public float alpha {
 		get {
