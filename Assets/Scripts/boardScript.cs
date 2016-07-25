@@ -9,6 +9,7 @@ public class boardScript : MonoBehaviour {
 	public GameObject blackChip;
 	public GameObject whiteChip;
 	public GameObject tempChip;
+	public GameObject errorChip;
 
 	public spaceScript[,] board = new spaceScript[15,15];
 
@@ -32,7 +33,7 @@ public class boardScript : MonoBehaviour {
 	void Update () {
 	
 	}
-
+	
 	public bool canPlace ( char type, spaceScript.Position pos) {
 		bool freeThree = false;
 		char offense = type;
@@ -42,42 +43,65 @@ public class boardScript : MonoBehaviour {
 		for (i = -1; i < 1; ++i) {
 			for (j = -1; j < 2; ++j) {
 				if (!(i == 0 && j ==0) && !(i == 0 && j == -1)) {
-					try {
-						for (k = -4; k < 1; k++) {
-							try {
-								count = 0;
-								empty = 0;
-								for (l = 0; l < 5; l++) {
-									if (k + l == 0) {
+					for (k = -4; k < 1; k++) {
+						try {
+							count = 0;
+							empty = 0;
+							for (l = 0; l < 5; l++) {
+								if (k + l == 0) {
+									count++;
+								} else {
+									tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
+									if (tempChip == offense) {
 										count++;
+									} else if (tempChip == defense) {
+										count = 0;
+										break;
 									} else {
-										tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
-										if (tempChip == offense) {
-											count++;
-										} else if (tempChip == defense) {
-											count = 0;
-											break;
-										} else {
-											empty++;
-										}
+										empty++;
 									}
 								}
-								if (count > 1)
-									Debug.Log ("Count:" + count + " Empty:" + empty);
-								if (count == 3 && empty >= 2) {
-									Debug.Log ("Free three found!");
-									if (freeThree)
-										return false;
-									freeThree = true;
-									break;
+							}
+							if (count == 3 && empty >= 2) {
+								if (freeThree) {
+									Debug.Log ("Double free three found!");
+									return false;
 								}
-							} catch(System.IndexOutOfRangeException) {}
-						}
-					} catch(System.IndexOutOfRangeException) {}
+								freeThree = true;
+								break;
+							}
+						} catch(System.IndexOutOfRangeException) {}
+					}
 				}
 			}
 		}
 		return true;
+	}
+
+	public bool isWin ( char type, spaceScript.Position pos) {
+		int i, j, k, l;
+		bool win;
+		for (i = -1; i < 1; ++i) {
+			for (j = -1; j < 2; ++j) {
+				if (!(i == 0 && j ==0) && !(i == 0 && j == -1)) {
+					for (k = -4; k < 1; k++) {
+						try {
+							win = true;
+							for (l = 0; l < 5; l++) {
+								if (!(k + l == 0 || board [pos.x + i*(k+l), pos.y + j*(k+l)].chip == type)) {
+									win = false;
+									break;
+								}
+							}
+							if (win) {
+								return true;
+							}
+						} catch(System.IndexOutOfRangeException) {}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	public GameObject placeChip ( spaceScript space ) {
@@ -93,7 +117,7 @@ public class boardScript : MonoBehaviour {
 			chip = GameObject.Instantiate (tempChip, Vector3.zero, Quaternion.identity) as GameObject;
 			break;
 		case 'f':
-			chip = null;
+			chip = GameObject.Instantiate (errorChip, Vector3.zero, Quaternion.identity) as GameObject;
 			break;
 		case '0':
 			chip = null;

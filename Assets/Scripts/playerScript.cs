@@ -22,8 +22,10 @@ public class playerScript : MonoBehaviour {
 	public GUIText whiteCaptured;
 	public Player blackPlayer = new Player('b');
 	public GUIText blackCaptured;
+	public victoryText victoryText;
 	
 	// Board rotation animation variables
+	public bool do_board_reset = false;
 	bool resetting_board = false;
 	Vector3 reset_angles_start;
 	float reset_ratio;
@@ -32,7 +34,7 @@ public class playerScript : MonoBehaviour {
 	bool changing_player = false;
 	float change_velocity = 0f;
 	public float change_time = 1f;
-
+	public bool gameOver = false;
 
 	void Awake () {
 		if (!instance)
@@ -77,7 +79,8 @@ public class playerScript : MonoBehaviour {
 				}
 			}
 		// Board reset input
-		} else if (Input.GetKey (KeyCode.R)) {
+		} else if (Input.GetKey (KeyCode.R) || do_board_reset) {
+			do_board_reset = false;
 			if (cameraPivot.transform.eulerAngles == Vector3.zero)
 				cameraPivot.transform.eulerAngles = Vector3.one * 359.9f;
 			hoverStop();
@@ -99,8 +102,8 @@ public class playerScript : MonoBehaviour {
 				cameraPivot.transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * 2f);
 				cameraPivot.transform.Rotate(Vector3.forward * Input.GetAxis("Mouse Y") * 2f);
 			}
-		// Handle mouse
-		} else {
+		// Handle mouse if not Game Over
+		} else if (!gameOver) {
 			RaycastHit hit;
 			Ray mouseRay = Camera.main.ScreenPointToRay (Input.mousePosition);
 			if (Physics.Raycast (mouseRay, out hit, Mathf.Infinity, 1)) {
@@ -116,6 +119,10 @@ public class playerScript : MonoBehaviour {
 						hoverStop();
 						space.setChip (whichTurn);
 						currentPlayer().boardRotation = cameraPivot.transform.rotation;
+						if (boardScript.instance.isWin(space.chip, space.position)) {
+							win (whichTurn);
+							return;
+						}
 						nextTurn();
 						if (!currentPlayer().ai) {
 							changing_player = true;
@@ -132,6 +139,19 @@ public class playerScript : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	public void win( char color ) {
+		if (color == 'w') {
+			Debug.Log ("White Player Wins");
+			victoryText.setText ("White Wins");
+		} else {
+			Debug.Log ("Black Player Wins");
+			victoryText.setText ("Black Wins");
+		}
+		victoryText.show = true;
+		do_board_reset = true;
+		gameOver = true;
 	}
 
 	void nextTurn() {
@@ -154,6 +174,9 @@ public class playerScript : MonoBehaviour {
 		getPlayer (color).chipsCaptured += 2;
 		whiteCaptured.text = whitePlayer.chipsCaptured.ToString();
 		blackCaptured.text = blackPlayer.chipsCaptured.ToString();
+		if (getPlayer (color).chipsCaptured > 9) {
+			win (color);
+		}
 	}
 
 	void hoverStop() {
