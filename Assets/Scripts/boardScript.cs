@@ -33,43 +33,86 @@ public class boardScript : MonoBehaviour {
 	void Update () {
 	
 	}
+
+	public char[,] getSample() {
+		char[,] sample = new char[15,15];
+		int i, j;
+		for (i = 0; i < 15; ++i) {
+			for (j = 0; j < 15; ++j) {
+				sample[i,j] = board[i,j].chip;
+			}
+		}
+		return sample;
+	}
 	
 	public bool canPlace ( char type, spaceScript.Position pos) {
 		bool freeThree = false;
 		char offense = type;
-		char defense = ( offense == 'w' ? 'b' : 'w' );
-		int i, j, k, l, count, empty;
+		int i, j, k, l;
+		bool empty;
 		char tempChip;
 		for (i = -1; i < 1; ++i) {
 			for (j = -1; j < 2; ++j) {
 				if (!(i == 0 && j ==0) && !(i == 0 && j == -1)) {
 					for (k = -4; k < 1; k++) {
 						try {
-							count = 0;
-							empty = 0;
-							for (l = 0; l < 5; l++) {
-								if (k + l == 0) {
-									count++;
-								} else {
-									tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
-									if (tempChip == offense) {
-										count++;
-									} else if (tempChip == defense) {
-										count = 0;
-										break;
-									} else {
-										empty++;
-									}
-								}
+							// FREE THREE VERIFICATION
+							empty = false;
+							l = 0; // FIRST
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
+							if (tempChip != '0')
+								continue;
+							l = 1; // SECOND
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
+							if (tempChip != offense)
+								continue;
+							l = 2; // THIRD
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
+							if (tempChip != offense && tempChip != '0')
+								continue;
+							if (tempChip == '0')
+								empty = true;
+							l = 3; // FOURTH
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
+							if (tempChip != offense && tempChip != '0')
+								continue;
+							if (tempChip == '0') {
+								if (empty == true)
+									continue;
+								else
+									empty = true;
 							}
-							if (count == 3 && empty >= 2) {
-								if (freeThree) {
-									Debug.Log ("Double free three found!");
-									return false;
+							l = 4; // FIFTH
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)].chip;
+							if (empty == true && tempChip != offense)
+								continue;
+							if (empty == false && tempChip != '0')
+								continue;
+							l = 5; // SIXTH
+							if (empty == true && board [pos.x + i*(k+l), pos.y + j*(k+l)].chip != '0')
+								continue;
+							// FREE THREE VERIFICATION END
+							// FREE THREE DEBUG
+							string output = "Free three found: ";
+							try {
+								for (l = 0; l < 5; l++) {
+									if (k+l != 0)
+										output += board [pos.x + i*(k+l), pos.y + j*(k+l)].chip.ToString();
+									else
+										output += offense.ToString();
 								}
-								freeThree = true;
-								break;
+								if (empty == true)
+									output += board [pos.x + i*(k+l), pos.y + j*(k+l)].chip.ToString();
+							} catch(System.IndexOutOfRangeException) {}
+							Debug.Log (output);
+							// FREE THREE DEBUG END
+							// FREE THREE CONFIRMED
+							if (freeThree) {
+								Debug.Log ("Double free three found!");
+								return false;
 							}
+							freeThree = true;
+							break;
 						} catch(System.IndexOutOfRangeException) {}
 					}
 				}
@@ -88,7 +131,7 @@ public class boardScript : MonoBehaviour {
 						try {
 							win = true;
 							for (l = 0; l < 5; l++) {
-								if (!(k + l == 0 || board [pos.x + i*(k+l), pos.y + j*(k+l)].chip == type)) {
+								if (!(board [pos.x + i*(k+l), pos.y + j*(k+l)].chip == type)) {
 									win = false;
 									break;
 								}

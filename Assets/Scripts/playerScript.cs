@@ -18,9 +18,9 @@ public class playerScript : MonoBehaviour {
 
 	// Player variables
 	public char whichTurn { get; private set; }
-	public Player whitePlayer = new Player('w');
+	private Player whitePlayer = new Player('w', false);
 	public GUIText whiteCaptured;
-	public Player blackPlayer = new Player('b');
+	private Player blackPlayer = new Player('b', true);
 	public GUIText blackCaptured;
 	public victoryText victoryText;
 	
@@ -36,17 +36,25 @@ public class playerScript : MonoBehaviour {
 	public float change_time = 1f;
 	public bool gameOver = false;
 
+	// Last Turn Handling
+	char lastTurn = '0';
+	spaceScript.Position lastTurnPos;
+
 	void Awake () {
 		if (!instance)
 			instance = this;
-		whichTurn = 'w';
+		whichTurn = Random.value > 0.5f ? 'w' : 'b';
+		changing_player = true;
+		change_velocity = 0f;
+		reset_time = 0f;
 		whitePlayer.opponent = blackPlayer;
+		whitePlayer.boardRotation = Quaternion.Euler (0f, 0f, 0f);
 		blackPlayer.opponent = whitePlayer;
 		blackPlayer.boardRotation = Quaternion.Euler (0f, 180f, 0f);
 	}
 
 	void Start () {
-		whiteTurnChip.alpha = 1f;
+		whiteTurnChip.alpha = 0f;
 		blackTurnChip.alpha = 0f;
 	}
 	
@@ -102,8 +110,30 @@ public class playerScript : MonoBehaviour {
 				cameraPivot.transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * 2f);
 				cameraPivot.transform.Rotate(Vector3.forward * Input.GetAxis("Mouse Y") * 2f);
 			}
+		// Handle Game Over
+		} else if (gameOver) {
+			// FIXME
+		// Handle last turn
+		} else if (lastTurn == whichTurn) {
+			if (boardScript.instance.isWin(lastTurn, lastTurnPos)) {
+				win(lastTurn);
+			} else {
+				lastTurn = '0';
+				victoryText.show = false;
+			}
 		// Handle mouse if not Game Over
-		} else if (!gameOver) {
+		} else if (currentPlayer().ai == true) {
+			Debug.Log ("AI?");
+			spaceScript.Position aiPos = currentPlayer().getMove(boardScript.instance.getSample());
+			boardScript.instance.board [aiPos.x, aiPos.y].setChip(whichTurn);
+			if (boardScript.instance.isWin(whichTurn, aiPos)) {
+				lastTurn = whichTurn;
+				lastTurnPos = aiPos;
+				victoryText.setText ("Last Turn?");
+				victoryText.show = true;
+			}
+			nextTurn();
+		} else if (currentPlayer().ai == false) {
 			RaycastHit hit;
 			Ray mouseRay = Camera.main.ScreenPointToRay (Input.mousePosition);
 			if (Physics.Raycast (mouseRay, out hit, Mathf.Infinity, 1)) {
@@ -120,17 +150,16 @@ public class playerScript : MonoBehaviour {
 						space.setChip (whichTurn);
 						currentPlayer().boardRotation = cameraPivot.transform.rotation;
 						if (boardScript.instance.isWin(space.chip, space.position)) {
-							win (whichTurn);
-							return;
+							lastTurn = whichTurn;
+							lastTurnPos = space.position;
+							victoryText.setText ("Last Turn?");
+							victoryText.show = true;
 						}
 						nextTurn();
 						if (!currentPlayer().ai) {
 							changing_player = true;
 							change_velocity = 0f;
 							reset_time = 0f;
-						} else {
-							// Handle AI FIXME
-							nextTurn();
 						}
 						boardScript.instance.debugBoard ();
 					}

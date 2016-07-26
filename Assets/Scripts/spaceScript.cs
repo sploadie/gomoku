@@ -7,6 +7,8 @@ public class spaceScript : MonoBehaviour {
 	public char chip { get; private set; }
 	public Position position { get; private set; }
 
+	private char savedChip = '0';
+
 	public struct Position {
 		public int x;
 		public int y;
@@ -34,10 +36,14 @@ public class spaceScript : MonoBehaviour {
 
 	public void hoverOn () {
 		if (chip == '0') {
-			if (boardScript.instance.canPlace(playerScript.instance.whichTurn, position))
+			setTemp(playerScript.instance.whichTurn);
+			if (boardScript.instance.canPlace(playerScript.instance.whichTurn, position)) {
+				unsetTemp();
 				setChip ('t');
-			else
+			} else {
+				unsetTemp();
 				setChip ('f');
+			}
 		}
 	}
 
@@ -57,5 +63,14 @@ public class spaceScript : MonoBehaviour {
 			chipObject.transform.parent = transform;
 			chipObject.transform.localPosition = Vector3.up * 0.75f;
 		}
+	}
+
+	private void setTemp ( char type ) {
+		savedChip = chip;
+		chip = type;
+	}
+
+	private void unsetTemp () {
+		chip = savedChip;
 	}
 }
