@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Position = spaceScript.Position;
 
 public class Player : Object {
 
@@ -22,10 +23,10 @@ public class Player : Object {
 	
 	}
 
-	public spaceScript.Position getMove(char[,] board) {
-		spaceScript.Position move;
+	public Position getMove(char[,] board) {
+		Position move;
 		do {
-			move = new spaceScript.Position(Random.Range(0, 15), Random.Range(0, 15));
+			move = new Position(Random.Range(0, 15), Random.Range(0, 15));
 		} while (board [move.x, move.y] != '0');
 		return move;
 	}
