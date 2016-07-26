@@ -193,9 +193,13 @@ public class playerScript : MonoBehaviour {
 		else
 			return blackPlayer;
 	}
-
+	
 	public Player currentPlayer() {
 		return getPlayer (whichTurn);
+	}
+
+	public Player otherPlayer() {
+		return getPlayer (whichTurn == 'w' ? 'b' : 'w');
 	}
 
 	public void chipsCaptured( char color ) {
