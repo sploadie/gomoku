@@ -18,6 +18,8 @@ public class playerScript : MonoBehaviour {
 
 	// Player variables
 	public char whichTurn { get; private set; }
+	public long pings;
+	public long final_pings;
 	private Player whitePlayer = new Player('w', false);
 	public GUIText whiteCaptured;
 	private Player blackPlayer = new Player('b', true);
@@ -125,7 +127,7 @@ public class playerScript : MonoBehaviour {
 			}
 		// Handle mouse if not Game Over
 		} else if (currentPlayer().ai == true) {
-			Debug.Log ("AI?");
+			// Debug.Log ("AI?");
 			spaceScript.Position aiPos = currentPlayer().getMove(boardScript.instance.getSample());
 			boardScript.instance.board [aiPos.x, aiPos.y].setChip(whichTurn);
 			if (boardScript.instance.isWin(whichTurn, aiPos)) {

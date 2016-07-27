@@ -6,7 +6,7 @@ using Position = spaceScript.Position;
 public class Player : Object {
 
 	public bool ai;
-	public int std_depth = 3;
+	public int std_depth = 4;
 	public char color = '0';
 	public int chipsCaptured = 0;
 	public Player opponent;
@@ -78,20 +78,37 @@ public class Player : Object {
 			weight = _weight;
 		}
 	}
-
-	public float Heuristic(boardState state) {
-		float rand = 0;//Random.value;
-		rand += state [color] * 100f;
-		rand -= state [opponent.color] * 100f;
-//		Debug.Log ("Heuristic: " + rand.ToString());
-		return rand;
+	
+	public float myHeuristic(boardState state) {
+		float weight = 0;
+		weight += state [color] * 100f;
+		int count = 0;
+		int total_distance = 0;
+		int i, j;
+		for (i = 0; i < 15; ++i) {
+			for (j = 0; j < 15; ++j) {
+				if (state[i,j] == color) {
+					count++;
+					total_distance += Mathf.Abs(i - 7) + Mathf.Abs(j - 7);
+				}
+			}
+		}
+		weight += 14 - ((float)total_distance / (float)count);
+		return weight;
 	}
 
+	public float Heuristic(boardState state) {
+		return myHeuristic (state) - opponent.myHeuristic (state);
+	}
+
+	static string miniMaxDebug;
 	public float miniMax(boardState state, Position[] bestMove, float parentBestWeight, int depth) {
+		playerScript.instance.pings++;
 		bool moveSet = false;
 		Position localBestMove = new Position();
 		float bestWeight = -Mathf.Infinity;
 		if (depth <= 0) { // If at last node
+			playerScript.instance.final_pings++;
 			return Heuristic(state);
 		} else {
 			// Get all moves
@@ -104,14 +121,18 @@ public class Player : Object {
 					if (state[i,j] == '0') {
 						state[i,j] = color;
 						if (noFreeThree(state.board, tempPos)) {
-							possibleMoves.Add(new possibleMove(tempPos, -opponent.Heuristic(state)));
+							if (std_depth - depth < 2)
+								possibleMoves.Add(new possibleMove(tempPos, -opponent.Heuristic(state)));
+							else
+								possibleMoves.Add(new possibleMove(tempPos, 0f));
 						}
 						state[i,j] = '0';
 					}
 				}
 			}
 			// Sort moves
-			possibleMoves.Sort((x, y) => x.weight.CompareTo(y.weight));
+			if (std_depth - depth < 2)
+				possibleMoves.Sort((x, y) => x.weight.CompareTo(y.weight));
 			// Calculate moves
 			float tmpWeight;
 			bool doBreak = false;
@@ -131,9 +152,11 @@ public class Player : Object {
 					if (tmpWeight > bestWeight) {
 						bestWeight = tmpWeight;
 						localBestMove.set (move.pos);
+					} else if (Mathf.Abs(parentBestWeight) == Mathf.Infinity) {
+						doBreak = true;
 					}
 				}
-				if (bestWeight > parentBestWeight) {
+				if (bestWeight > parentBestWeight && Mathf.Abs(parentBestWeight) != Mathf.Infinity) {
 					doBreak = true;
 				}
 				// MINIMAX END
@@ -151,6 +174,7 @@ public class Player : Object {
 			Debug.Log ("AI Minimax: " + bestWeight.ToString());
 			bestMove[0].set (localBestMove);
 		}
+//		miniMaxDebug += "Depth:" + depth.ToString() + " Weight:" + bestWeight.ToString() + "\n";
 		return bestWeight;
 	}
 
@@ -159,7 +183,11 @@ public class Player : Object {
 		state [color] = chipsCaptured;
 		state [opponent.color] = opponent.chipsCaptured;
 		Position[] bestMove = new Position[1];
+		miniMaxDebug = "MiniMax Debug:\n";
+		playerScript.instance.pings = 0;
+		playerScript.instance.final_pings = 0;
 		miniMax(state, bestMove, Mathf.Infinity, std_depth);
+		Debug.Log (miniMaxDebug);
 		return bestMove[0];
 	}
 
