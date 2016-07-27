@@ -43,8 +43,10 @@ public class playerScript : MonoBehaviour {
 	void Awake () {
 		if (!instance)
 			instance = this;
+		Debug.Log ("Random: " + Random.value.ToString() + " " + Random.value.ToString() + " " + Random.value.ToString() + " " + Random.value.ToString() + " " + Random.value.ToString());
 		whichTurn = Random.value > 0.5f ? 'w' : 'b';
-		changing_player = true;
+		if (!currentPlayer().ai)
+			changing_player = true;
 		change_velocity = 0f;
 		reset_time = 0f;
 		whitePlayer.opponent = blackPlayer;
@@ -132,6 +134,14 @@ public class playerScript : MonoBehaviour {
 				victoryText.setText ("Last Turn?");
 				victoryText.show = true;
 			}
+			if (whichTurn == 'w') {
+				whiteTurnChip.alpha = 0f;
+				blackTurnChip.alpha = 1f;
+			} else {
+				whiteTurnChip.alpha = 1f;
+				blackTurnChip.alpha = 0f;
+			}
+			cameraPivot.transform.rotation = otherPlayer().boardRotation;
 			nextTurn();
 		} else if (currentPlayer().ai == false) {
 			RaycastHit hit;

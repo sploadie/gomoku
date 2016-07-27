@@ -6,7 +6,7 @@ using Position = spaceScript.Position;
 public class Player : Object {
 
 	public bool ai;
-	public int std_depth = 5;
+	public int std_depth = 3;
 	public char color = '0';
 	public int chipsCaptured = 0;
 	public Player opponent;
@@ -25,7 +25,7 @@ public class Player : Object {
 	
 	}
 
-	public struct boardState {
+	public class boardState {
 		public char[,] board;
 		// Chips that YOU captured
 		public int white;
@@ -70,35 +70,49 @@ public class Player : Object {
 	}
 
 	private float Heuristic(boardState state) {
-		return Random.Range (-8, 9);
+		float rand = Random.value * 100f - 50f;
+		rand += state [color] * 100f;
+		rand -= state [opponent.color] * 100f;
+//		Debug.Log ("Heuristic: " + rand.ToString());
+		return rand;
 	}
 
-	public float miniMax(boardState state, Position[] bestMove, int depth) {
+	public float miniMax(boardState state, Position[] bestMove, float parentBestWeight, int depth) {
 		Position move = new Position();
 		bool moveSet = false;
 		float bestWeight = -Mathf.Infinity;
 		float tmpWeight;
 		Position pos = new Position();
+		float currentWeight = Heuristic(state);
 		if (depth <= 0) {
-			return Heuristic(state);
+			return currentWeight;
+		} else if (currentWeight <= parentBestWeight) {
+			return currentWeight;
 		} else {
 			int i, j;
 			for (i = 0; i < 15; ++i) {
 				for (j = 0; j < 15; ++j) {
 					pos.set (i,j);
-					if (state[i,j] == '0' && noFreeThree(state.board, pos)) {
+					if (state[i,j] == '0') {
+//						Debug.Log ("Color: " + color.ToString() + " Move: " + i.ToString() + "," + j.ToString());
 						state[i,j] = color;
-						List<Position> captured = handleCapture (state.board, pos);
-						state[color] += captured.Count;
-						tmpWeight = -opponent.miniMax(state, null, depth - 1);
-						if (tmpWeight < bestWeight || moveSet == false) {
-							bestWeight = tmpWeight;
-							move.set (pos);
-							moveSet = true;
+						if (noFreeThree(state.board, pos)) {
+							List<Position> captured = handleCapture (state.board, pos);
+							state[color] += captured.Count;
+							if (moveSet == false)
+								tmpWeight = -opponent.miniMax(state, null, -Mathf.Infinity, depth - 1);
+							else
+								tmpWeight = -opponent.miniMax(state, null, -bestWeight, depth - 1);
+							if (tmpWeight > bestWeight || moveSet == false) {
+								bestWeight = tmpWeight;
+								move.set (pos);
+								moveSet = true;
+							}
+							state[color] -= captured.Count;
+							captured.ForEach(delegate(Position captPos) {
+								state[captPos.x, captPos.y] = opponent.color;
+							});
 						}
-						captured.ForEach(delegate(Position captPos) {
-							state[captPos.x, captPos.y] = opponent.color;
-						});
 						state[i,j] = '0';
 					}
 				}
@@ -108,6 +122,7 @@ public class Player : Object {
 			Debug.Log ("AI couldn't find a move!!");
 		}
 		if (bestMove != null) {
+			Debug.Log ("AI Minimax: " + bestWeight.ToString());
 			bestMove[0].set (move);
 		}
 		return bestWeight;
@@ -118,12 +133,12 @@ public class Player : Object {
 		state [color] = chipsCaptured;
 		state [opponent.color] = opponent.chipsCaptured;
 		Position[] bestMove = new Position[1];
-		miniMax(state, bestMove, std_depth);
+		miniMax(state, bestMove, -Mathf.Infinity, std_depth);
 		return bestMove[0];
 	}
 
 	// Returns true if no free three
-	public bool noFreeThree (char[,] board, Position pos) {
+	private bool noFreeThree (char[,] board, Position pos) {
 		bool freeThree = false;
 		char offense = board [pos.x, pos.y];
 		int i, j, k, l;
@@ -172,7 +187,7 @@ public class Player : Object {
 							// FREE THREE VERIFICATION END
 							// FREE THREE CONFIRMED
 							if (freeThree) {
-								Debug.Log ("Double free three found!");
+								// Debug.Log ("Double free three found!");
 								return false;
 							}
 							freeThree = true;
@@ -186,7 +201,7 @@ public class Player : Object {
 	}
 
 	// Returns list of captured chips; board modified!
-	public List<Position> handleCapture (char[,] board, Position pos) {
+	private List<Position> handleCapture (char[,] board, Position pos) {
 		char offense = board [pos.x, pos.y];
 		char defense = ( offense == 'w' ? 'b' : 'w' );
 		List<Position> captured = new List<Position> ();
@@ -198,7 +213,6 @@ public class Player : Object {
 					    && board [pos.x + i*2, pos.y + j*2] == defense
 					    && board [pos.x + i*3, pos.y + j*3] == offense) {
 						// Capture occured
-						playerScript.instance.chipsCaptured(offense);
 						board [pos.x + i, pos.y + j] = '0';
 						captured.Add(new Position(pos.x + i, pos.y + j));
 						board [pos.x + i*2, pos.y + j*2] = '0';
@@ -211,7 +225,7 @@ public class Player : Object {
 	}
 
 	// Returns true if chip at pos gives win
-	public bool isWin (char[,] board, Position pos) {
+	private bool isWin (char[,] board, Position pos) {
 		char color = board [pos.x, pos.y];
 		int i, j, k, l;
 		bool win;
