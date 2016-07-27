@@ -69,8 +69,18 @@ public class Player : Object {
 		}
 	}
 
-	private float Heuristic(boardState state) {
-		float rand = Random.value * 100f - 50f;
+	struct possibleMove {
+		public Position pos;
+		public float weight;
+
+		public possibleMove (Position _pos, float _weight) {
+			pos = new Position(_pos);
+			weight = _weight;
+		}
+	}
+
+	public float Heuristic(boardState state) {
+		float rand = 0;//Random.value;
 		rand += state [color] * 100f;
 		rand -= state [opponent.color] * 100f;
 //		Debug.Log ("Heuristic: " + rand.ToString());
@@ -78,52 +88,68 @@ public class Player : Object {
 	}
 
 	public float miniMax(boardState state, Position[] bestMove, float parentBestWeight, int depth) {
-		Position move = new Position();
 		bool moveSet = false;
+		Position localBestMove = new Position();
 		float bestWeight = -Mathf.Infinity;
-		float tmpWeight;
-		Position pos = new Position();
-		float currentWeight = Heuristic(state);
-		if (depth <= 0) {
-			return currentWeight;
-		} else if (currentWeight <= parentBestWeight) {
-			return currentWeight;
+		if (depth <= 0) { // If at last node
+			return Heuristic(state);
 		} else {
+			// Get all moves
+			Position tempPos = new Position();
+			List<possibleMove> possibleMoves = new List<possibleMove>();
 			int i, j;
 			for (i = 0; i < 15; ++i) {
 				for (j = 0; j < 15; ++j) {
-					pos.set (i,j);
+					tempPos.set (i,j);
 					if (state[i,j] == '0') {
-//						Debug.Log ("Color: " + color.ToString() + " Move: " + i.ToString() + "," + j.ToString());
 						state[i,j] = color;
-						if (noFreeThree(state.board, pos)) {
-							List<Position> captured = handleCapture (state.board, pos);
-							state[color] += captured.Count;
-							if (moveSet == false)
-								tmpWeight = -opponent.miniMax(state, null, -Mathf.Infinity, depth - 1);
-							else
-								tmpWeight = -opponent.miniMax(state, null, -bestWeight, depth - 1);
-							if (tmpWeight > bestWeight || moveSet == false) {
-								bestWeight = tmpWeight;
-								move.set (pos);
-								moveSet = true;
-							}
-							state[color] -= captured.Count;
-							captured.ForEach(delegate(Position captPos) {
-								state[captPos.x, captPos.y] = opponent.color;
-							});
+						if (noFreeThree(state.board, tempPos)) {
+							possibleMoves.Add(new possibleMove(tempPos, -opponent.Heuristic(state)));
 						}
 						state[i,j] = '0';
 					}
 				}
 			}
+			// Sort moves
+			possibleMoves.Sort((x, y) => x.weight.CompareTo(y.weight));
+			// Calculate moves
+			float tmpWeight;
+			bool doBreak = false;
+			possibleMoves.ForEach(delegate(possibleMove move) {
+				if (doBreak)
+					return;
+				state[move.pos.x, move.pos.y] = color;
+				List<Position> captured = handleCapture (state.board, move.pos);
+				state[color] += captured.Count;
+				// MINIMAX START
+				if (moveSet == false) {
+					bestWeight = -opponent.miniMax(state, null, -parentBestWeight, depth - 1);
+					localBestMove.set (move.pos);
+					moveSet = true;
+				} else {
+					tmpWeight = -opponent.miniMax(state, null, -bestWeight, depth - 1);
+					if (tmpWeight > bestWeight) {
+						bestWeight = tmpWeight;
+						localBestMove.set (move.pos);
+					}
+				}
+				if (bestWeight > parentBestWeight) {
+					doBreak = true;
+				}
+				// MINIMAX END
+				state[color] -= captured.Count;
+				captured.ForEach(delegate(Position captPos) {
+					state[captPos.x, captPos.y] = opponent.color;
+				});
+				state[move.pos.x, move.pos.y] = '0';
+			});
 		}
 		if (moveSet == false) {
 			Debug.Log ("AI couldn't find a move!!");
 		}
 		if (bestMove != null) {
 			Debug.Log ("AI Minimax: " + bestWeight.ToString());
-			bestMove[0].set (move);
+			bestMove[0].set (localBestMove);
 		}
 		return bestWeight;
 	}
@@ -133,7 +159,7 @@ public class Player : Object {
 		state [color] = chipsCaptured;
 		state [opponent.color] = opponent.chipsCaptured;
 		Position[] bestMove = new Position[1];
-		miniMax(state, bestMove, -Mathf.Infinity, std_depth);
+		miniMax(state, bestMove, Mathf.Infinity, std_depth);
 		return bestMove[0];
 	}
 

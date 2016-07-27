@@ -17,6 +17,11 @@ public class spaceScript : MonoBehaviour {
 			x = _x;
 			y = _y;
 		}
+
+		public Position( Position pos ) {
+			x = pos.x;
+			y = pos.y;
+		}
 		
 		public void set( int _x, int _y ) {
 			x = _x;

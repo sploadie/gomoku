@@ -1,11 +1,11 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Player.cs">
     <Files>
-      <File FileName="Assets/Scripts/playerScript.cs" Line="137" Column="1" />
+      <File FileName="Assets/Scripts/playerScript.cs" Line="23" Column="51" />
       <File FileName="Assets/Scripts/spinningChip.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/spaceScript.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/Player.cs" Line="77" Column="15" />
+      <File FileName="Assets/Scripts/spaceScript.cs" Line="36" Column="28" />
+      <File FileName="Assets/Scripts/Player.cs" Line="187" Column="28" />
       <File FileName="Assets/Scripts/boardScript.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/counterChip.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/errorPlane.cs" Line="1" Column="1" />
