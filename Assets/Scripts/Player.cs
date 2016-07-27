@@ -78,10 +78,91 @@ public class Player : Object {
 			weight = _weight;
 		}
 	}
+
 	
+	// Returns free three count
+	int freeThreeCount (char[,] board, Position pos) {
+		int freeThrees = 0;
+		char offense = color;
+		int i, j, k, l;
+		bool empty;
+		char tempChip;
+		for (i = -1; i < 1; ++i) {
+			for (j = -1; j < 2; ++j) {
+				if (!(i == 0 && j ==0) && !(i == 0 && j == -1)) {
+					for (k = -4; k < 1; k++) {
+						try {
+							// FREE THREE VERIFICATION
+							empty = false;
+							l = 0; // FIRST
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)];
+							if (tempChip != '0')
+								continue;
+							l = 1; // SECOND
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)];
+							if (tempChip != offense)
+								continue;
+							l = 2; // THIRD
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)];
+							if (tempChip != offense && tempChip != '0')
+								continue;
+							if (tempChip == '0')
+								empty = true;
+							l = 3; // FOURTH
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)];
+							if (tempChip != offense && tempChip != '0')
+								continue;
+							if (tempChip == '0') {
+								if (empty == true)
+									continue;
+								else
+									empty = true;
+							}
+							l = 4; // FIFTH
+							tempChip = board [pos.x + i*(k+l), pos.y + j*(k+l)];
+							if (empty == true && tempChip != offense)
+								continue;
+							if (empty == false && tempChip != '0')
+								continue;
+							l = 5; // SIXTH
+							if (empty == true && board [pos.x + i*(k+l), pos.y + j*(k+l)] != '0')
+								continue;
+							// FREE THREE VERIFICATION END
+							// FREE THREE CONFIRMED
+							freeThrees++;
+						} catch(System.IndexOutOfRangeException) {}
+					}
+				}
+			}
+		}
+		return freeThrees;
+	}
+
+	void checkLines (char[,] board, ref int freeThrees, ref int wins) {
+		freeThrees = 0;
+		wins = 0;
+		Position pos = new Position();
+		int i, j;
+		for (i = 4; i < 11; ++i) {
+			for (j = 4; j < 11; ++j) {
+				pos.set (i, j);
+				freeThrees += freeThreeCount (board, pos);
+				if (isWin(board, pos))
+					wins++;
+			}
+		}
+	}
+
 	public float myHeuristic(boardState state) {
+		if (state [color] >= 10)
+			return Mathf.Infinity;
 		float weight = 0;
 		weight += state [color] * 100f;
+		int freeThrees = 0;
+		int wins = 0;
+		checkLines(state.board, ref freeThrees, ref wins);
+		weight += freeThrees * 50;
+		weight += wins * 100000;
 		int count = 0;
 		int total_distance = 0;
 		int i, j;
@@ -101,7 +182,6 @@ public class Player : Object {
 		return myHeuristic (state) - opponent.myHeuristic (state);
 	}
 
-	static string miniMaxDebug;
 	public float miniMax(boardState state, Position[] bestMove, float parentBestWeight, int depth) {
 		playerScript.instance.pings++;
 		bool moveSet = false;
@@ -145,10 +225,20 @@ public class Player : Object {
 				// MINIMAX START
 				if (moveSet == false) {
 					bestWeight = opponent.miniMax(state, null, Mathf.Infinity, depth + 1);
+					// FIXME START
+					if (bestMove != null) {
+						boardScript.instance.newAIText(move.pos, bestWeight.ToString());
+					}
+					// FIXME END
 					localBestMove.set (move.pos);
 					moveSet = true;
 				} else {
 					tmpWeight = opponent.miniMax(state, null, -bestWeight, depth + 1);
+					// FIXME START
+					if (bestMove != null) {
+						boardScript.instance.newAIText(move.pos, tmpWeight.ToString());
+					}
+					// FIXME END
 					if (tmpWeight > bestWeight) {
 						bestWeight = tmpWeight;
 						localBestMove.set (move.pos);
@@ -169,10 +259,9 @@ public class Player : Object {
 			Debug.Log ("AI couldn't find a move!!");
 		}
 		if (bestMove != null) {
-			Debug.Log ("AI Minimax: " + bestWeight.ToString());
+//			Debug.Log ("AI Minimax: " + bestWeight.ToString());
 			bestMove[0].set (localBestMove);
 		}
-//		miniMaxDebug += "Depth:" + depth.ToString() + " Weight:" + bestWeight.ToString() + "\n";
 		return -bestWeight;
 	}
 
@@ -181,14 +270,15 @@ public class Player : Object {
 		state [color] = chipsCaptured;
 		state [opponent.color] = opponent.chipsCaptured;
 		Position[] bestMove = new Position[1];
-		miniMaxDebug = "MiniMax Debug:\n";
 		playerScript.instance.pings = 0;
 		playerScript.instance.final_pings = 0;
+		boardScript.instance.clearAIText ();
+		long startTime = System.DateTime.Now.Ticks;
 		if (boardEmpty (state.board) == false)
 			miniMax (state, bestMove, Mathf.Infinity, 0);
 		else
 			bestMove [0].set (7, 7);
-		Debug.Log (miniMaxDebug);
+		Debug.Log ("Minimax Time: " + ((float)((System.DateTime.Now.Ticks - startTime) / System.TimeSpan.TicksPerMillisecond) / 1000f).ToString());
 		return bestMove[0];
 	}
 
@@ -307,8 +397,7 @@ public class Player : Object {
 	}
 
 	// Returns true if chip at pos gives win
-	private bool isWin (char[,] board, Position pos) {
-		char color = board [pos.x, pos.y];
+	bool isWin (char[,] board, Position pos) {
 		int i, j, k, l;
 		bool win;
 		for (i = -1; i < 1; ++i) {

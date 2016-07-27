@@ -45,7 +45,6 @@ public class playerScript : MonoBehaviour {
 	void Awake () {
 		if (!instance)
 			instance = this;
-		Debug.Log ("Random: " + Random.value.ToString() + " " + Random.value.ToString() + " " + Random.value.ToString() + " " + Random.value.ToString() + " " + Random.value.ToString());
 		whichTurn = Random.value > 0.5f ? 'w' : 'b';
 		if (!currentPlayer().ai)
 			changing_player = true;
@@ -130,7 +129,7 @@ public class playerScript : MonoBehaviour {
 			// Debug.Log ("AI?");
 			spaceScript.Position aiPos = currentPlayer().getMove(boardScript.instance.getSample());
 			boardScript.instance.board [aiPos.x, aiPos.y].setChip(whichTurn);
-			if (boardScript.instance.isWin(whichTurn, aiPos)) {
+			if (lastTurn == '0' && boardScript.instance.isWin(whichTurn, aiPos)) {
 				lastTurn = whichTurn;
 				lastTurnPos = aiPos;
 				victoryText.setText ("Last Turn?");
@@ -161,7 +160,7 @@ public class playerScript : MonoBehaviour {
 						hoverStop();
 						space.setChip (whichTurn);
 						currentPlayer().boardRotation = cameraPivot.transform.rotation;
-						if (boardScript.instance.isWin(space.chip, space.position)) {
+						if (lastTurn == '0' && boardScript.instance.isWin(space.chip, space.position)) {
 							lastTurn = whichTurn;
 							lastTurnPos = space.position;
 							victoryText.setText ("Last Turn?");

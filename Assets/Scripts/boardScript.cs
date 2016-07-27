@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
+using UnityEngine.UI;
 
 public class boardScript : MonoBehaviour {
 
@@ -10,6 +11,9 @@ public class boardScript : MonoBehaviour {
 	public GameObject whiteChip;
 	public GameObject tempChip;
 	public GameObject errorChip;
+
+	public GameObject AITextContainer;
+	public TextMesh AIText;
 
 	public spaceScript[,] board = new spaceScript[15,15];
 
@@ -192,6 +196,19 @@ public class boardScript : MonoBehaviour {
 				} catch(System.IndexOutOfRangeException) {}
 			}
 		}
+	}
+
+	public void newAIText(spaceScript.Position pos, string content) {
+		TextMesh newText = GameObject.Instantiate (AIText, Vector3.zero, AIText.transform.rotation) as TextMesh;
+		newText.text = content;
+		newText.transform.parent = AITextContainer.transform;
+		newText.transform.localPosition = new Vector3 ((float)(pos.x - 7) * 2f, 0f, (float)(pos.y - 7) * 2f);
+	}
+
+	public void clearAIText() {
+		Destroy (AITextContainer);
+		AITextContainer = new GameObject ();
+		AITextContainer.transform.position = Vector3.up;
 	}
 
 	public void debugBoard() {
