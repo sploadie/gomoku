@@ -33,11 +33,13 @@ public class Player : Object {
 		public int black;
 
 		public boardState (char [,] _board) {
-			board = _board.Clone();
+			board = (char[,])_board.Clone();
+			white = 0;
+			black = 0;
 		}
 
 		public boardState (boardState _state) {
-			board = _state.board.Clone ();
+			board = (char[,])_state.board.Clone ();
 			white = _state.white;
 			black = _state.black;
 		}
@@ -67,29 +69,32 @@ public class Player : Object {
 		}
 	}
 
-	private int Heuristic(char[,] board) {
-		return Random (-8, 9);
+	private float Heuristic(boardState state) {
+		return Random.Range (-8, 9);
 	}
 
-	public int miniMax(boardState state, Position bestMove, int depth) {
-		Position move;
-		int bestWeight = -Mathf.Infinity;
-		int tmpWeight;
-		if (depth == 0) {
+	public float miniMax(boardState state, Position[] bestMove, int depth) {
+		Position move = new Position();
+		bool moveSet = false;
+		float bestWeight = -Mathf.Infinity;
+		float tmpWeight;
+		Position pos = new Position();
+		if (depth <= 0) {
 			return Heuristic(state);
 		} else {
 			int i, j;
 			for (i = 0; i < 15; ++i) {
 				for (j = 0; j < 15; ++j) {
-					Position pos = new Position(i,j);
+					pos.set (i,j);
 					if (state[i,j] == '0' && noFreeThree(state.board, pos)) {
 						state[i,j] = color;
 						List<Position> captured = handleCapture (state.board, pos);
 						state[color] += captured.Count;
 						tmpWeight = -opponent.miniMax(state, null, depth - 1);
-						if (tmpWeight < bestWeight || move == null) {
+						if (tmpWeight < bestWeight || moveSet == false) {
 							bestWeight = tmpWeight;
-							move = pos;
+							move.set (pos);
+							moveSet = true;
 						}
 						captured.ForEach(delegate(Position captPos) {
 							state[captPos.x, captPos.y] = opponent.color;
@@ -99,8 +104,11 @@ public class Player : Object {
 				}
 			}
 		}
+		if (moveSet == false) {
+			Debug.Log ("AI couldn't find a move!!");
+		}
 		if (bestMove != null) {
-			bestMove = move;
+			bestMove[0].set (move);
 		}
 		return bestWeight;
 	}
@@ -109,9 +117,9 @@ public class Player : Object {
 		boardState state = new boardState (board);
 		state [color] = chipsCaptured;
 		state [opponent.color] = opponent.chipsCaptured;
-		Position bestMove = new Position();
+		Position[] bestMove = new Position[1];
 		miniMax(state, bestMove, std_depth);
-		return bestMove;
+		return bestMove[0];
 	}
 
 	// Returns true if no free three
@@ -190,7 +198,6 @@ public class Player : Object {
 					    && board [pos.x + i*2, pos.y + j*2] == defense
 					    && board [pos.x + i*3, pos.y + j*3] == offense) {
 						// Capture occured
-						captured += 2;
 						playerScript.instance.chipsCaptured(offense);
 						board [pos.x + i, pos.y + j] = '0';
 						captured.Add(new Position(pos.x + i, pos.y + j));

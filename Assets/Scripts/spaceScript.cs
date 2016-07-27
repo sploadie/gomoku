@@ -17,10 +17,15 @@ public class spaceScript : MonoBehaviour {
 			x = _x;
 			y = _y;
 		}
-
+		
 		public void set( int _x, int _y ) {
 			x = _x;
 			y = _y;
+		}
+	
+		public void set( Position pos ) {
+			x = pos.x;
+			y = pos.y;
 		}
 
 		public Position Clone() {
