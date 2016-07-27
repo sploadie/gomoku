@@ -6,7 +6,7 @@ using Position = spaceScript.Position;
 public class Player : Object {
 
 	public bool ai;
-	public int std_depth = 4;
+	public int std_depth = 3;
 	public char color = '0';
 	public int chipsCaptured = 0;
 	public Player opponent;
@@ -106,10 +106,10 @@ public class Player : Object {
 		playerScript.instance.pings++;
 		bool moveSet = false;
 		Position localBestMove = new Position();
-		float bestWeight = -Mathf.Infinity;
-		if (depth <= 0) { // If at last node
+		float bestWeight = 0;
+		if (depth == std_depth) { // If at last node
 			playerScript.instance.final_pings++;
-			return Heuristic(state);
+			return -Heuristic(state);
 		} else {
 			// Get all moves
 			Position tempPos = new Position();
@@ -120,8 +120,8 @@ public class Player : Object {
 					tempPos.set (i,j);
 					if (state[i,j] == '0') {
 						state[i,j] = color;
-						if (noFreeThree(state.board, tempPos)) {
-							if (std_depth - depth < 2)
+						if (noFreeThree(state.board, tempPos) && maxDistance(state.board, tempPos, 1)) {
+							if (depth > 2)
 								possibleMoves.Add(new possibleMove(tempPos, -opponent.Heuristic(state)));
 							else
 								possibleMoves.Add(new possibleMove(tempPos, 0f));
@@ -131,7 +131,7 @@ public class Player : Object {
 				}
 			}
 			// Sort moves
-			if (std_depth - depth < 2)
+			if (depth > 2)
 				possibleMoves.Sort((x, y) => x.weight.CompareTo(y.weight));
 			// Calculate moves
 			float tmpWeight;
@@ -144,19 +144,17 @@ public class Player : Object {
 				state[color] += captured.Count;
 				// MINIMAX START
 				if (moveSet == false) {
-					bestWeight = -opponent.miniMax(state, null, -parentBestWeight, depth - 1);
+					bestWeight = opponent.miniMax(state, null, Mathf.Infinity, depth + 1);
 					localBestMove.set (move.pos);
 					moveSet = true;
 				} else {
-					tmpWeight = -opponent.miniMax(state, null, -bestWeight, depth - 1);
+					tmpWeight = opponent.miniMax(state, null, -bestWeight, depth + 1);
 					if (tmpWeight > bestWeight) {
 						bestWeight = tmpWeight;
 						localBestMove.set (move.pos);
-					} else if (Mathf.Abs(parentBestWeight) == Mathf.Infinity) {
-						doBreak = true;
 					}
 				}
-				if (bestWeight > parentBestWeight && Mathf.Abs(parentBestWeight) != Mathf.Infinity) {
+				if (parentBestWeight != Mathf.Infinity && bestWeight > parentBestWeight) {
 					doBreak = true;
 				}
 				// MINIMAX END
@@ -175,7 +173,7 @@ public class Player : Object {
 			bestMove[0].set (localBestMove);
 		}
 //		miniMaxDebug += "Depth:" + depth.ToString() + " Weight:" + bestWeight.ToString() + "\n";
-		return bestWeight;
+		return -bestWeight;
 	}
 
 	public Position getMove(char[,] board) {
@@ -186,13 +184,43 @@ public class Player : Object {
 		miniMaxDebug = "MiniMax Debug:\n";
 		playerScript.instance.pings = 0;
 		playerScript.instance.final_pings = 0;
-		miniMax(state, bestMove, Mathf.Infinity, std_depth);
+		if (boardEmpty (state.board) == false)
+			miniMax (state, bestMove, Mathf.Infinity, 0);
+		else
+			bestMove [0].set (7, 7);
 		Debug.Log (miniMaxDebug);
 		return bestMove[0];
 	}
 
+	
+	bool boardEmpty(char[,] board) {
+		int i, j;
+		for (i = 0; i < 15; ++i) {
+			for (j = 0; j < 15; ++j) {
+				if (board[i,j] != '0')
+					return false;
+			}
+		}
+		return true;
+	}
+
+	bool maxDistance(char[,] board, Position pos, int distance) {
+		int i, j;
+		for (i = -distance; i <= distance; ++i) {
+			for (j = -distance; j <= distance; ++j) {
+				if (i == 0 && j == 0)
+					continue;
+				try {
+					if (board[pos.x + i, pos.y + j] != '0')
+						return true;
+				} catch(System.IndexOutOfRangeException) {}
+			}
+		}
+		return false;
+	}
+
 	// Returns true if no free three
-	private bool noFreeThree (char[,] board, Position pos) {
+	bool noFreeThree (char[,] board, Position pos) {
 		bool freeThree = false;
 		char offense = board [pos.x, pos.y];
 		int i, j, k, l;
