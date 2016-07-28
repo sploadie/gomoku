@@ -53,6 +53,7 @@
      <Compile Include="Assets\Scripts\spaceScript.cs" />
      <Compile Include="Assets\Scripts\spinningChip.cs" />
      <Compile Include="Assets\Scripts\victoryText.cs" />
+     <None Include="Assets\Scripts\parallelHeuristic.compute" />
  <Reference Include="UnityEngine.Analytics">
  <HintPath>/Applications/Unity/Unity.app/Contents/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
  </Reference>
