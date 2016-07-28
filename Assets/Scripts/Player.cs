@@ -155,14 +155,18 @@ public class Player : Object {
 
 	public float myHeuristic(boardState state) {
 		if (state [color] >= 10)
-			return 1000000000;
+			return (2 ^ 12) * 10f;
 		float weight = 0;
 		weight += (2 ^ state [color]) * 100f;
 		int freeThrees = 0;
 		int wins = 0;
 		checkLines(state.board, ref freeThrees, ref wins);
-		weight += freeThrees * 50;
-		weight += wins * 100000;
+		if (freeThrees == 1)
+			weight += (2 ^ 3) * 10f;
+		if (freeThrees > 1)
+			weight += (2 ^ 4) * 10f;
+		if (wins > 0)
+			weight += (2 ^ 8) * 10f;
 		int count = 0;
 		int total_distance = 0;
 		int i, j;
@@ -174,7 +178,7 @@ public class Player : Object {
 				}
 			}
 		}
-		weight += 14 - ((float)total_distance / (float)count);
+		weight += (14 - ((float)total_distance / (float)count)) / 4f;
 		return weight;
 	}
 
