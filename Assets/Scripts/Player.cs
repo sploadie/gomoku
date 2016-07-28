@@ -6,7 +6,7 @@ using Position = spaceScript.Position;
 public class Player : Object {
 
 	public bool ai;
-	public int std_depth = 3;
+	public int std_depth = 4;
 	public char color = '0';
 	public int chipsCaptured = 0;
 	public Player opponent;
@@ -154,19 +154,20 @@ public class Player : Object {
 	}
 
 	public float myHeuristic(boardState state) {
-		if (state [color] >= 10)
-			return (2 ^ 12) * 10f;
 		float weight = 0;
-		weight += (2 ^ state [color]) * 100f;
+		if (state [color] >= 10)
+			weight += (10 ^ 16);
+		else
+			weight += (2 ^ state [color]) * (10 ^ 6);
 		int freeThrees = 0;
 		int wins = 0;
 		checkLines(state.board, ref freeThrees, ref wins);
 		if (freeThrees == 1)
-			weight += (2 ^ 3) * 10f;
+			weight += (10 ^ 4);
 		if (freeThrees > 1)
-			weight += (2 ^ 4) * 10f;
+			weight += (10 ^ 4) * 5f;
 		if (wins > 0)
-			weight += (2 ^ 8) * 10f;
+			weight += (10 ^ 12);
 		int count = 0;
 		int total_distance = 0;
 		int i, j;
