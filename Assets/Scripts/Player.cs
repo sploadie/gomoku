@@ -155,9 +155,9 @@ public class Player : Object {
 
 	public float myHeuristic(boardState state) {
 		if (state [color] >= 10)
-			return Mathf.Infinity;
+			return 1000000000;
 		float weight = 0;
-		weight += state [color] * 100f;
+		weight += (2 ^ state [color]) * 100f;
 		int freeThrees = 0;
 		int wins = 0;
 		checkLines(state.board, ref freeThrees, ref wins);
@@ -179,7 +179,7 @@ public class Player : Object {
 	}
 
 	public float Heuristic(boardState state) {
-		return myHeuristic (state) - opponent.myHeuristic (state);
+		return myHeuristic (state) - (opponent.myHeuristic (state) * 1.5f);
 	}
 
 	public float miniMax(boardState state, Position[] bestMove, float parentBestWeight, int depth) {

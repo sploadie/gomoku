@@ -113,6 +113,13 @@ public class playerScript : MonoBehaviour {
 				cameraPivot.transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * 2f);
 				cameraPivot.transform.Rotate(Vector3.forward * Input.GetAxis("Mouse Y") * 2f);
 			}
+		// Handle zoom
+		} else if (Input.GetAxis("Vertical") != 0) {
+			float scale = 1f - (Input.GetAxis("Vertical") / 10f);
+			if (Input.GetAxis("Vertical") > 0 && cameraPivot.transform.localScale.magnitude > 0.2f)
+				cameraPivot.transform.localScale = cameraPivot.transform.localScale * scale;
+			if (Input.GetAxis("Vertical") < 0 && cameraPivot.transform.localScale.magnitude <= 1.5f)
+				cameraPivot.transform.localScale = cameraPivot.transform.localScale * scale;
 		// Handle Game Over
 		} else if (gameOver) {
 			// FIXME

@@ -12,6 +12,7 @@ public class boardScript : MonoBehaviour {
 	public GameObject tempChip;
 	public GameObject errorChip;
 
+	public bool showAI = true;
 	public GameObject AITextContainer;
 	public TextMesh AIText;
 
@@ -199,6 +200,8 @@ public class boardScript : MonoBehaviour {
 	}
 
 	public void newAIText(spaceScript.Position pos, string content) {
+		if (!showAI)
+			return;
 		TextMesh newText = GameObject.Instantiate (AIText, Vector3.zero, AIText.transform.rotation) as TextMesh;
 		newText.text = content;
 		newText.transform.parent = AITextContainer.transform;
