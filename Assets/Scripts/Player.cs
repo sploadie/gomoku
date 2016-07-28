@@ -6,7 +6,7 @@ using Position = spaceScript.Position;
 public class Player : Object {
 
 	public bool ai;
-	public int std_depth = 4;
+	public int std_depth = 1;
 	public char color = '0';
 	public int chipsCaptured = 0;
 	public Player opponent;
@@ -138,53 +138,112 @@ public class Player : Object {
 		return freeThrees;
 	}
 
-	void checkLines (char[,] board, ref int freeThrees, ref int wins) {
+	void checkLines (char[,] board, ref int freeThrees, ref int wins, ref int align) {
 		freeThrees = 0;
 		wins = 0;
+		align = 0;
+		int tmp;
 		Position pos = new Position();
 		int i, j;
-		for (i = 4; i < 11; ++i) {
-			for (j = 4; j < 11; ++j) {
+		for (i = 0; i < 15; ++i) {
+			for (j = 0; j < 15; ++j) {
 				pos.set (i, j);
 				freeThrees += freeThreeCount (board, pos);
-				if (isWin(board, pos))
+				tmp = winOrAlign(board, pos);
+				if (tmp == 5)
 					wins++;
+				else if (tmp == 4)
+					align++;
 			}
 		}
 	}
 
 	public float myHeuristic(boardState state) {
 		float weight = 0;
-		if (state [color] >= 10)
-			weight += (10 ^ 16);
-		else
-			weight += (2 ^ state [color]) * (10 ^ 6);
 		int freeThrees = 0;
+		int opponentFreeThrees = 0;
 		int wins = 0;
-		checkLines(state.board, ref freeThrees, ref wins);
+		int opponentWins = 0;
+		int align = 0;
+		int opponentAlign = 0;
+
+		weight += Mathf.Pow(2, state [color]) * 1000;
+		weight -= Mathf.Pow(2, state [opponent.color]) * 1000;
+
+		checkLines(state.board, ref freeThrees, ref wins, ref align);
+		opponent.checkLines(state.board, ref opponentFreeThrees, ref opponentWins, ref opponentAlign);
+
 		if (freeThrees == 1)
-			weight += (10 ^ 4);
-		if (freeThrees > 1)
-			weight += (10 ^ 4) * 5f;
-		if (wins > 0)
-			weight += (10 ^ 12);
-		int count = 0;
-		int total_distance = 0;
-		int i, j;
-		for (i = 0; i < 15; ++i) {
-			for (j = 0; j < 15; ++j) {
-				if (state[i,j] == color) {
-					count++;
-					total_distance += Mathf.Abs(i - 7) + Mathf.Abs(j - 7);
-				}
-			}
-		}
-		weight += (14 - ((float)total_distance / (float)count)) / 4f;
+			weight += 1;
+		else if (freeThrees > 1)
+			weight += 5;
+		if (opponentFreeThrees == 1)
+			weight -= 1;
+		else if (opponentFreeThrees > 1)
+			weight -= 5;
+		if (align == 1)
+			weight += 10;
+		else if (align > 1)
+			weight += 50;
+		if (opponentAlign == 1)
+			weight -= 10;
+		else if (opponentAlign > 1)
+			weight -= 50;
+		if (wins == 1)
+			weight += 100;
+		else if (wins > 1)
+			weight += 500;
+		if (opponentWins == 1)
+			weight -= 100;
+		else if (opponentWins > 1)
+			weight -= 500;
+
+
+
+
+
+
+
+
+		// OLD
+//		if (state [color] >= 10)
+//			weight += (10 ^ 16);
+//		else
+//			weight += (2 ^ state [color]) * (10 ^ 6);
+//		if (state [opponent.color] >= 10)
+//			weight -= (10 ^ 16) * 2f;
+//		int freeThrees = 0;
+//		int wins = 0;
+//		int align = 0;
+//		checkLines(state.board, ref freeThrees, ref wins, ref align);
+//		if (freeThrees == 1)
+//			weight += (10 ^ 4);
+//		if (freeThrees > 1)
+//			weight += (10 ^ 4) * 5f;
+//		if (wins > 0)
+//			weight += (10 ^ 12);
+//		else if (align > 0)
+//			weight += (10 ^ 5);
+//		int count = 0;
+//		int total_distance = 0;
+//		int i, j;
+//		for (i = 0; i < 15; ++i) {
+//			for (j = 0; j < 15; ++j) {
+//				if (state[i,j] == color) {
+//					count++;
+//					total_distance += Mathf.Abs(i - 7) + Mathf.Abs(j - 7);
+//				}
+//			}
+//		}
+//		weight += (14 - ((float)total_distance / (float)count)) * 0.01f;
+		// OLD END
 		return weight;
 	}
 
 	public float Heuristic(boardState state) {
-		return myHeuristic (state) - (opponent.myHeuristic (state) * 1.5f);
+		return myHeuristic (state);
+//		return -(opponent.myHeuristic (state));
+//		return myHeuristic (state) - (opponent.myHeuristic (state) * 2f);
 	}
 
 	public float miniMax(boardState state, Position[] bestMove, float parentBestWeight, int depth) {
@@ -192,7 +251,7 @@ public class Player : Object {
 		bool moveSet = false;
 		Position localBestMove = new Position();
 		float bestWeight = 0;
-		if (depth == std_depth) { // If at last node
+		if (depth == std_depth * 2) { // If at last node
 			playerScript.instance.final_pings++;
 			return -Heuristic(state);
 		} else {
@@ -207,7 +266,7 @@ public class Player : Object {
 						state[i,j] = color;
 						if (noFreeThree(state.board, tempPos) && maxDistance(state.board, tempPos, 1)) {
 							if (depth > 2)
-								possibleMoves.Add(new possibleMove(tempPos, -opponent.Heuristic(state)));
+								possibleMoves.Add(new possibleMove(tempPos, Heuristic(state)));
 							else
 								possibleMoves.Add(new possibleMove(tempPos, 0f));
 						}
@@ -216,7 +275,7 @@ public class Player : Object {
 				}
 			}
 			// Sort moves
-			if (depth > 2)
+			if (depth < 2)
 				possibleMoves.Sort((x, y) => x.weight.CompareTo(y.weight));
 			// Calculate moves
 			float tmpWeight;
@@ -400,31 +459,54 @@ public class Player : Object {
 		}
 		return (captured);
 	}
-
-	// Returns true if chip at pos gives win
-	bool isWin (char[,] board, Position pos) {
+	
+	// Returns 0, 4, or 5
+	int winOrAlign (char[,] board, Position pos) {
 		int i, j, k, l;
-		bool win;
+		bool win, align, empty;
+		char tempChip;
+		bool isAlign = false;
+		bool isWin = false;
 		for (i = -1; i < 1; ++i) {
 			for (j = -1; j < 2; ++j) {
-				if (!(i == 0 && j ==0) && !(i == 0 && j == -1)) {
+				if (!(i == 0 && j == 0) && !(i == 0 && j == -1)) {
 					for (k = -4; k < 1; k++) {
 						try {
 							win = true;
+							align = false;
+							empty = false;
 							for (l = 0; l < 5; l++) {
-								if (!(board [pos.x + i*(k+l), pos.y + j*(k+l)] == color)) {
+								tempChip = board [pos.x + i * (k + l), pos.y + j * (k + l)];
+								if (!(tempChip == color)) {
 									win = false;
-									break;
+									if (tempChip == '0') {
+										if (!empty) {
+											align = true;
+											empty = true;
+										} else {
+											align = false;
+										}
+									} else {
+										align = false;
+										break;
+									}
 								}
 							}
 							if (win) {
-								return true;
+								isWin = true;
+							} else if (align) {
+								isAlign = true;
 							}
-						} catch(System.IndexOutOfRangeException) {}
+						} catch (System.IndexOutOfRangeException) {
+						}
 					}
 				}
 			}
 		}
-		return false;
+		if (isWin)
+			return 5;
+		if (isAlign)
+			return 4;
+		return 0;
 	}
 }

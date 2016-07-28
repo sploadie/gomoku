@@ -20,7 +20,7 @@ public class playerScript : MonoBehaviour {
 	public char whichTurn { get; private set; }
 	public long pings;
 	public long final_pings;
-	private Player whitePlayer = new Player('w', false);
+	private Player whitePlayer = new Player('w', true);
 	public GUIText whiteCaptured;
 	private Player blackPlayer = new Player('b', true);
 	public GUIText blackCaptured;
@@ -131,7 +131,7 @@ public class playerScript : MonoBehaviour {
 				lastTurn = '0';
 				victoryText.show = false;
 			}
-		// Handle mouse if not Game Over
+		// Handle AI if not Game Over
 		} else if (currentPlayer().ai == true) {
 			// Debug.Log ("AI?");
 			spaceScript.Position aiPos = currentPlayer().getMove(boardScript.instance.getSample());
@@ -151,6 +151,7 @@ public class playerScript : MonoBehaviour {
 			}
 			cameraPivot.transform.rotation = otherPlayer().boardRotation;
 			nextTurn();
+		// Handle mouse if not Game Over
 		} else if (currentPlayer().ai == false) {
 			RaycastHit hit;
 			Ray mouseRay = Camera.main.ScreenPointToRay (Input.mousePosition);

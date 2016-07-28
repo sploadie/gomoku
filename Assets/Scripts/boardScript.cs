@@ -56,6 +56,9 @@ public class boardScript : MonoBehaviour {
 		int i, j, k, l;
 		bool empty;
 		char tempChip;
+		int tmp = winOrAlign (getSample (), pos, type);
+		if (tmp > 0)
+			Debug.Log ("winOrAlign: " + tmp.ToString ());
 		for (i = -1; i < 1; ++i) {
 			for (j = -1; j < 2; ++j) {
 				if (!(i == 0 && j ==0) && !(i == 0 && j == -1)) {
@@ -124,6 +127,55 @@ public class boardScript : MonoBehaviour {
 			}
 		}
 		return true;
+	}
+
+	int winOrAlign (char[,] board, spaceScript.Position pos, char color) {
+		int i, j, k, l;
+		bool win, align, empty;
+		char tempChip;
+		bool isAlign = false;
+		bool isWin = false;
+		for (i = -1; i < 1; ++i) {
+			for (j = -1; j < 2; ++j) {
+				if (!(i == 0 && j == 0) && !(i == 0 && j == -1)) {
+					for (k = -4; k < 1; k++) {
+						try {
+							win = true;
+							align = false;
+							empty = false;
+							for (l = 0; l < 5; l++) {
+								tempChip = board [pos.x + i * (k + l), pos.y + j * (k + l)];
+								if (!(tempChip == color)) {
+									win = false;
+									if (tempChip == '0') {
+										if (!empty) {
+											align = true;
+											empty = true;
+										} else {
+											align = false;
+										}
+									} else {
+										align = false;
+										break;
+									}
+								}
+							}
+							if (win) {
+								isWin = true;
+							} else if (align) {
+								isAlign = true;
+							}
+						} catch (System.IndexOutOfRangeException) {
+						}
+					}
+				}
+			}
+		}
+		if (isWin)
+			return 5;
+		if (isAlign)
+			return 4;
+		return 0;
 	}
 
 	public bool isWin ( char type, spaceScript.Position pos) {
