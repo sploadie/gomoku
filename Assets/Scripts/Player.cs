@@ -6,7 +6,7 @@ using Position = spaceScript.Position;
 public class Player : Object {
 
 	public bool ai;
-	public int std_depth = 1;
+	public int std_depth = 2;
 	public char color = '0';
 	public int chipsCaptured = 0;
 	public Player opponent;
@@ -197,53 +197,11 @@ public class Player : Object {
 			weight -= 100;
 		else if (opponentWins > 1)
 			weight -= 500;
-
-
-
-
-
-
-
-
-		// OLD
-//		if (state [color] >= 10)
-//			weight += (10 ^ 16);
-//		else
-//			weight += (2 ^ state [color]) * (10 ^ 6);
-//		if (state [opponent.color] >= 10)
-//			weight -= (10 ^ 16) * 2f;
-//		int freeThrees = 0;
-//		int wins = 0;
-//		int align = 0;
-//		checkLines(state.board, ref freeThrees, ref wins, ref align);
-//		if (freeThrees == 1)
-//			weight += (10 ^ 4);
-//		if (freeThrees > 1)
-//			weight += (10 ^ 4) * 5f;
-//		if (wins > 0)
-//			weight += (10 ^ 12);
-//		else if (align > 0)
-//			weight += (10 ^ 5);
-//		int count = 0;
-//		int total_distance = 0;
-//		int i, j;
-//		for (i = 0; i < 15; ++i) {
-//			for (j = 0; j < 15; ++j) {
-//				if (state[i,j] == color) {
-//					count++;
-//					total_distance += Mathf.Abs(i - 7) + Mathf.Abs(j - 7);
-//				}
-//			}
-//		}
-//		weight += (14 - ((float)total_distance / (float)count)) * 0.01f;
-		// OLD END
 		return weight;
 	}
 
 	public float Heuristic(boardState state) {
 		return myHeuristic (state);
-//		return -(opponent.myHeuristic (state));
-//		return myHeuristic (state) - (opponent.myHeuristic (state) * 2f);
 	}
 
 	public float miniMax(boardState state, Position[] bestMove, float parentBestWeight, int depth) {
@@ -265,7 +223,7 @@ public class Player : Object {
 					if (state[i,j] == '0') {
 						state[i,j] = color;
 						if (noFreeThree(state.board, tempPos) && maxDistance(state.board, tempPos, 1)) {
-							if (depth > 2)
+							if (depth < 2)
 								possibleMoves.Add(new possibleMove(tempPos, Heuristic(state)));
 							else
 								possibleMoves.Add(new possibleMove(tempPos, 0f));

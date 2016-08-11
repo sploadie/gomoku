@@ -151,7 +151,7 @@ public class playerScript : MonoBehaviour {
 			}
 			nextTurn();
 			if (!currentPlayer().ai) {
-				cameraPivot.transform.rotation = otherPlayer().boardRotation;
+				cameraPivot.transform.rotation = currentPlayer().boardRotation;
 			}
 		// Handle mouse if not Game Over
 		} else if (currentPlayer().ai == false) {
