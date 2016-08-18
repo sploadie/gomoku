@@ -17,14 +17,6 @@ public class Player : Object {
 		ai = _ai;
 	}
 
-	void Start () {
-	
-	}
-	
-	void Update () {
-	
-	}
-
 	public class boardState {
 		public char[,] board;
 		// Chips that YOU captured
@@ -147,6 +139,8 @@ public class Player : Object {
 		int i, j;
 		for (i = 0; i < 15; ++i) {
 			for (j = 0; j < 15; ++j) {
+				if (board[i, j] == '0')
+					continue;
 				pos.set (i, j);
 				freeThrees += freeThreeCount (board, pos);
 				tmp = winOrAlign(board, pos);
@@ -170,6 +164,11 @@ public class Player : Object {
 		weight += Mathf.Pow(2, state [color]) * 1000;
 		weight -= Mathf.Pow(2, state [opponent.color]) * 1000;
 
+		if (state [color] > 9)
+			weight += 1000 * 1000;
+		else if (state [opponent.color] > 9)
+			weight -= 1000 * 1000;
+
 		checkLines(state.board, ref freeThrees, ref wins, ref align);
 		opponent.checkLines(state.board, ref opponentFreeThrees, ref opponentWins, ref opponentAlign);
 
@@ -190,13 +189,13 @@ public class Player : Object {
 		else if (opponentAlign > 1)
 			weight -= 50;
 		if (wins == 1)
-			weight += 100;
+			weight += 100 * 1000;
 		else if (wins > 1)
-			weight += 500;
+			weight += 500 * 1000;
 		if (opponentWins == 1)
-			weight -= 100;
+			weight -= 100 * 1000;
 		else if (opponentWins > 1)
-			weight -= 500;
+			weight -= 500 * 1000;
 		return weight;
 	}
 
@@ -223,10 +222,19 @@ public class Player : Object {
 					if (state[i,j] == '0') {
 						state[i,j] = color;
 						if (noFreeThree(state.board, tempPos) && maxDistance(state.board, tempPos, 1)) {
-							if (depth < 2)
+							if (depth < 2) {
+								state[tempPos.x, tempPos.y] = color;
+								List<Position> captured = handleCapture (state.board, tempPos);
+								state[color] += captured.Count;
 								possibleMoves.Add(new possibleMove(tempPos, Heuristic(state)));
-							else
+								state[color] -= captured.Count;
+								captured.ForEach(delegate(Position captPos) {
+									state[captPos.x, captPos.y] = opponent.color;
+								});
+								state[tempPos.x, tempPos.y] = '0';
+							} else {
 								possibleMoves.Add(new possibleMove(tempPos, 0f));
+							}
 						}
 						state[i,j] = '0';
 					}
@@ -234,7 +242,7 @@ public class Player : Object {
 			}
 			// Sort moves
 			if (depth < 2)
-				possibleMoves.Sort((x, y) => x.weight.CompareTo(y.weight));
+				possibleMoves.Sort((x, y) => y.weight.CompareTo(x.weight));
 			// Calculate moves
 			float tmpWeight;
 			bool doBreak = false;
@@ -249,7 +257,7 @@ public class Player : Object {
 					bestWeight = opponent.miniMax(state, null, Mathf.Infinity, depth + 1);
 					// FIXME START
 					if (bestMove != null) {
-						boardScript.instance.newAIText(move.pos, bestWeight.ToString());
+						boardScript.instance.newAIText(move.pos, bestWeight.ToString() + " - " + move.weight.ToString());
 					}
 					// FIXME END
 					localBestMove.set (move.pos);
@@ -258,7 +266,7 @@ public class Player : Object {
 					tmpWeight = opponent.miniMax(state, null, -bestWeight, depth + 1);
 					// FIXME START
 					if (bestMove != null) {
-						boardScript.instance.newAIText(move.pos, tmpWeight.ToString());
+						boardScript.instance.newAIText(move.pos, tmpWeight.ToString() + " - " + move.weight.ToString());
 					}
 					// FIXME END
 					if (tmpWeight > bestWeight) {
