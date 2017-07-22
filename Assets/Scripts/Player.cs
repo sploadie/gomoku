@@ -61,7 +61,7 @@ public class Player : Object {
 			}
 		}
 
-		public string ToString () {
+		public override string ToString () {
 			StringBuilder sb = new StringBuilder();
 			int i, j;
 			for (i = 0; i < 15; ++i) {
