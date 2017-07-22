@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Position = spaceScript.Position;
+using System.Text;
 
 public class Player : Object {
 
@@ -58,6 +59,19 @@ public class Player : Object {
 				else
 					black = value;
 			}
+		}
+
+		public string ToString () {
+			StringBuilder sb = new StringBuilder();
+			int i, j;
+			for (i = 0; i < 15; ++i) {
+				for (j = 0; j < 15; ++j) {
+					sb.Append (board [i, j]);
+				}
+				sb.Append ('\n');
+			}
+			sb.AppendFormat ("{0}{1}\n", white, black);
+			return sb.ToString ();
 		}
 	}
 
@@ -299,6 +313,7 @@ public class Player : Object {
 		boardState state = new boardState (board);
 		state [color] = chipsCaptured;
 		state [opponent.color] = opponent.chipsCaptured;
+		Debug.Log (state.ToString ());
 		Position[] bestMove = new Position[1];
 		playerScript.instance.pings = 0;
 		playerScript.instance.final_pings = 0;

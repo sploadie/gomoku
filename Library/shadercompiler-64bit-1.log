@@ -1,3 +1,7 @@
 Base path: /Applications/Unity/Unity.app/Contents
-Pipe name: \\.\pipe\UnityShaderCompiler-64bit-1-1966645248
+Pipe name: \\.\pipe\UnityShaderCompiler-64bit-1-1980264448
 Cmd: getPlatforms
+Cmd: compileCompute
+  api=15 insize=721 outsize=41 ok=1
+Cmd: compileCompute
+  api=9 insize=721 outsize=41 ok=1
