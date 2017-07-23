@@ -32,7 +32,7 @@ static inline void stop()
 }
 /* ************************************************************************** */
 
-int		g_alphabeta_depth = 7;
+int		g_alphabeta_depth = 4;
 
 int		main(int argc, char *argv[])
 {
@@ -41,6 +41,7 @@ int		main(int argc, char *argv[])
 	t_player	player;
 	t_move		move;
 
+	srand(time(NULL));
 	if (argc != 3)
 	{
 		dprintf(2, "Usage: %s PIPE_IN PIPE_OUT\n", argv[0]);

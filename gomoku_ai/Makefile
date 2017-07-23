@@ -53,3 +53,9 @@ fclean: clean
 	-/bin/rm -f  $(NAME)
 
 re: fclean all
+
+run: re
+	rm ./test/ai_in ./test/ai_out
+	mkfifo ./test/ai_in
+	mkfifo ./test/ai_out
+	"./$(NAME)" ./test/ai_in ./test/ai_out

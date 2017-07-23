@@ -19,6 +19,8 @@
 # include <stdio.h>
 # include <fcntl.h>
 # include <limits.h>
+# include <time.h>
+# include <stdlib.h>
 
 # define BOARD_FILE_SIZE 245
 # define MAX_MOVES 192
