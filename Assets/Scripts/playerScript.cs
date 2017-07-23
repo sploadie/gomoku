@@ -43,6 +43,8 @@ public class playerScript : MonoBehaviour {
 	spaceScript.Position lastTurnPos;
 
 	void Awake () {
+		Player.Awake ();
+
 		if (!instance)
 			instance = this;
 		whichTurn = Random.value > 0.5f ? 'w' : 'b';
@@ -134,7 +136,7 @@ public class playerScript : MonoBehaviour {
 		// Handle AI if not Game Over
 		} else if (currentPlayer().ai == true) {
 			// Debug.Log ("AI?");
-			spaceScript.Position aiPos = currentPlayer().getMove(boardScript.instance.getSample());
+			spaceScript.Position aiPos = currentPlayer().getMoveFromC(boardScript.instance.getSample());
 			boardScript.instance.board [aiPos.x, aiPos.y].setChip(whichTurn);
 			if (lastTurn == '0' && boardScript.instance.isWin(whichTurn, aiPos)) {
 				lastTurn = whichTurn;

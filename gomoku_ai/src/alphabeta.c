@@ -40,7 +40,7 @@ static int	alphabeta_recurse(t_board *board, t_board *board_memory, int depth, t
 	if (depth == g_alphabeta_depth)
 		return board->h; // Cleaner calculation here maybe?
 	count = moves_get_boards(board, player, board_memory);
-	if (depth < 5)
+	if (depth < 3)
 		move_boards_sort(board_memory, count);
 	if (count == 0)
 		return 0;

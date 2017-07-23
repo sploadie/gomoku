@@ -32,35 +32,40 @@ static inline void stop()
 }
 /* ************************************************************************** */
 
-int		g_alphabeta_depth = 6;
+int		g_alphabeta_depth = 7;
 
 int		main(int argc, char *argv[])
 {
-	int			fd;
+	int			fd[2];
 	t_board		*board;
 	t_player	player;
 	t_move		move;
 
-	if (argc != 2)
+	if (argc != 3)
 	{
-		dprintf(2, "Usage: %s NAMED_PIPE\n", argv[0]);
+		dprintf(2, "Usage: %s PIPE_IN PIPE_OUT\n", argv[0]);
 		return 1;
 	}
-	fd = open(argv[1], O_RDONLY);
-	if (fd < 0)
+	fd[0] = open(argv[1], O_RDONLY | O_SYNC);
+	fd[1] = open(argv[2], O_WRONLY | O_SYNC);
+	for (int i = 0; i < 2; i++)
 	{
-		perror("Input");
-		return 1;
+		if (fd[i] < 0)
+		{
+			perror("Input");
+			return 1;
+		}
 	}
 	while (42) {
-		board = read_board(fd, &player);
+		board = read_board(fd[0], &player);
 		print_board(board, player);
 		start();
 		move = alphabeta(board, player.color);
 		stop();
 		dprintf(1, "Move: (%d, %d)\n", move.x, move.y);
+		dprintf(fd[1], "%d %d\n", move.x, move.y);
 	}
-	if (fd > 2)
-		close(fd);
+	for (int i = 0; i < 2; i++)
+		close(fd[i]);
 	return 0;
 }

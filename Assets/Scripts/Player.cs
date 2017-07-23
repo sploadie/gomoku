@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Position = spaceScript.Position;
 using System.Text;
+using System.IO;
 
 public class Player : Object {
 
@@ -12,6 +13,17 @@ public class Player : Object {
 	public int chipsCaptured = 0;
 	public Player opponent;
 	public Quaternion boardRotation = Quaternion.identity;
+	private static string aiInPath;
+	private static string aiOutPath;
+
+	public static void Awake () {
+		aiInPath = Path.Combine (Application.dataPath, "../gomoku_ai/test/ai_in");
+		aiOutPath = Path.Combine (Application.dataPath, "../gomoku_ai/test/ai_out");
+	}
+
+	FileStream aiFileStream (string path) {
+		return new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+	}
 
 	public Player ( char _color, bool _ai ) {
 		color = _color;
@@ -66,7 +78,10 @@ public class Player : Object {
 			int i, j;
 			for (i = 0; i < 15; ++i) {
 				for (j = 0; j < 15; ++j) {
-					sb.Append (board [i, j]);
+					if (board [i, j] == '0')
+						sb.Append ('.');
+					else
+						sb.Append (board [i, j]);
 				}
 				sb.Append ('\n');
 			}
@@ -327,7 +342,43 @@ public class Player : Object {
 		return bestMove[0];
 	}
 
-	
+	public Position getMoveFromC(char[,] board) {
+		Position move = new Position ();
+
+		boardState state = new boardState (board);
+		state [color] = chipsCaptured;
+		state [opponent.color] = opponent.chipsCaptured;
+
+		if (boardEmpty (state.board))
+			return new Position (7, 7);
+
+		StringBuilder boardString = new StringBuilder (state.ToString ());
+		boardString.AppendLine (this.color.ToString());
+		Debug.Log (boardString.ToString());
+
+		using (FileStream aiInFile = aiFileStream (aiInPath)) {
+			StreamWriter aiIn = new StreamWriter (aiInFile, Encoding.ASCII);
+			aiIn.Write (boardString.ToString ());
+			aiIn.Flush ();
+		}
+
+		string moveString;
+		using (FileStream aiOutFile = aiFileStream (aiOutPath)) {
+			StreamReader aiOut = new StreamReader (aiOutFile, Encoding.ASCII);
+			moveString = aiOut.ReadLine ();
+		}
+
+		Debug.Log(string.Format("Move String: {0}", moveString));
+		string[] moveSplit = moveString.Split (new char[] { ' ' }, 2);
+
+		move.x = int.Parse(moveSplit [1]);
+		move.y = int.Parse(moveSplit [0]);
+
+		Debug.Log (move);
+
+		return move;
+	}
+
 	bool boardEmpty(char[,] board) {
 		int i, j;
 		for (i = 0; i < 15; ++i) {
