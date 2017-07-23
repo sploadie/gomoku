@@ -1,15 +1,16 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Player.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Menu.cs">
     <Files>
-      <File FileName="Assets/Scripts/Player.cs" Line="320" Column="39" />
+      <File FileName="Assets/Scripts/Player.cs" Line="326" Column="76" />
       <File FileName="Assets/Scripts/spinningChip.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/playerScript.cs" Line="134" Column="32" />
+      <File FileName="Assets/Scripts/playerScript.cs" Line="129" Column="19" />
       <File FileName="Assets/Scripts/spaceScript.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/boardScript.cs" Line="28" Column="7" />
       <File FileName="Assets/Scripts/counterChip.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/errorPlane.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/victoryText.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Menu.cs" Line="14" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

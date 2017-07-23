@@ -22,7 +22,7 @@ public class playerScript : MonoBehaviour {
 	public long final_pings;
 	private Player whitePlayer = new Player('w', false);
 	public GUIText whiteCaptured;
-	private Player blackPlayer = new Player('b', true);
+	private Player blackPlayer = new Player('b', Menu.ai_mode);
 	public GUIText blackCaptured;
 	public victoryText victoryText;
 	
