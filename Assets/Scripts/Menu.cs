@@ -6,15 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class Menu : MonoBehaviour {
 
-	public Button yourButton;
 	public static bool ai_mode;
-
-	// Use this for initialization
-	void Start () {
-		Button btn = yourButton.GetComponent<Button>();
-		btn.onClick.AddListener(PlayerVsPlayer);
-		btn.onClick.AddListener(PlayerVsAI);
-	}
 	
 	// Update is called once per frame
 	void Update () {
